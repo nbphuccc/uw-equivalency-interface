@@ -13,7 +13,7 @@ const colleges = [
   { label: "Clark College", value: "Clark College" },
   { label: "Clover Park Technical College", value: "Clover Park Technical College" },
   { label: "Columbia Basin College", value: "Columbia Basin College" },
-  { label: "Edmonds College", value: "Edmonds College" },
+  { label: "Edmonds College", value: "Edmonds Community College" },
   { label: "Everett Community College", value: "Everett Community College" },
   { label: "Grays Harbor College", value: "Grays Harbor College" },
   { label: "Green River College", value: "Green River College" },
@@ -34,8 +34,8 @@ const colleges = [
   { label: "Skagit Valley College", value: "Skagit Valley College" },
   { label: "South Puget Sound Community College", value: "South Puget Sound Community College" },
 
-  { label: "Spokane Community College", value: "Spokane Colleges" },
-  { label: "Spokane Falls Community College", value: "Spokane Colleges" },
+  { label: "Spokane Community College", value: "Community Colleges of Spokane" },
+  { label: "Spokane Falls Community College", value: "Community Colleges of Spokane" },
 
   { label: "Tacoma Community College", value: "Tacoma Community College" },
   { label: "Walla Walla Community College", value: "Walla Walla Community College" },

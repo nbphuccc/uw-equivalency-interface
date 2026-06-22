@@ -7,21 +7,26 @@ export async function searchCcCourses(
   showActiveOnly: boolean
 ) {
   const db = await getDB();
-  const currentCourseValue = showActiveOnly ? 1 : 0;
 
   let sql = `
     SELECT *
     FROM equivalencies
     WHERE college_name = ?
-    AND community_college_course LIKE ?
   `;
 
-  const params: string[] = [
-    college,
-    `%${ccCourse}%`,
-  ];
+  const params: string[] = [college];
 
-  if (currentCourseValue === 1) {
+  const terms = ccCourse
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+
+  for (const term of terms) {
+    sql += ` AND community_college_course LIKE ?`;
+    params.push(`%${term}%`);
+  }
+
+  if (showActiveOnly) {
     sql += ` AND current_course = 1`;
   }
 
@@ -42,21 +47,26 @@ export async function searchUwCourses(
   showActiveOnly: boolean
 ) {
   const db = await getDB();
-  const currentCourseValue = showActiveOnly ? 1 : 0;
 
   let sql = `
     SELECT *
     FROM equivalencies
     WHERE college_name = ?
-    AND uw_equivalent LIKE ?
   `;
 
-  const params: string[] = [
-    college,
-    `%${uwCourse}%`,
-  ];
+  const params: string[] = [college];
 
-  if (currentCourseValue === 1) {
+  const terms = uwCourse
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+
+  for (const term of terms) {
+    sql += ` AND uw_equivalent LIKE ?`;
+    params.push(`%${term}%`);
+  }
+
+  if (showActiveOnly) {
     sql += ` AND current_course = 1`;
   }
 
