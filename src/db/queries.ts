@@ -80,3 +80,27 @@ export async function searchUwCourses(
 
   return results;
 }
+
+export async function getAdvisoryDetails(
+  college_name: string,
+  department: string,
+  advisor_code: string
+) {
+  const db = await getDB();
+
+  const stmt = db.prepare(`
+    SELECT advisory
+    FROM advisory
+    WHERE college_name = ?
+      AND department = ?
+      AND advisor_code = ?
+  `);
+
+  stmt.bind([college_name, department, advisor_code]);
+
+  if (stmt.step()) {
+    return stmt.getAsObject().advisory as string;
+  }
+
+  return null;
+}

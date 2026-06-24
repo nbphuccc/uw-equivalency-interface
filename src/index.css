@@ -51,7 +51,7 @@
 }
 
 #root {
-  width: 1126px;
+  width: 1920px;
   max-width: 100%;
   margin: 0 auto;
   text-align: center;
@@ -60,6 +60,13 @@
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+}
+
+.results-section {
+  width: 100%;
+  display: flex;
+  justify-content: center; /* keeps table centered as a block */
+  text-align: left;        /* fixes text alignment inside table */
 }
 
 body {

@@ -8,3 +8,10 @@ export type Equivalency = {
   foreign_language: number;
   current_course: number;
 };
+
+export type TooltipData = {
+  x: number;
+  y: number;
+  data: string | null;
+  visible: boolean;
+};

@@ -76,7 +76,9 @@ function App() {
       {loading && <p>Loading...</p>}
 
       {/* Results */}
-      <ResultsTable results={results} />
+      <div className="results-section">
+        <ResultsTable results={results} />
+      </div>
 
     </div>
   );
