@@ -15,3 +15,8 @@ export type TooltipData = {
   data: string | null;
   visible: boolean;
 };
+
+export type Token = {
+  text: string;
+  type: "word" | "space" | "other";
+};

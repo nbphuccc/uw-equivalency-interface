@@ -1,5 +1,5 @@
 import { getDB } from "./loadDB";
-import type { Equivalency } from "../types";
+import type { Equivalency } from "../types/type";
 
 export async function searchCcCourses(
   college: string,

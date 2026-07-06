@@ -1,19 +1,26 @@
 // ResultsTable.tsx
-import type { Equivalency, TooltipData } from "../types";
+import type { Equivalency, TooltipData, Token } from "../types/type";
 import "./ResultsTable.css";
 import type { ReactNode } from "react";
-import { useState, useRef } from "react";
+import { useState, useRef, Children } from "react";
 import { getAdvisoryDetails } from "../db/queries";
 
 type Props = {
   results: Equivalency[];
+  showActiveOnly: boolean;
+  setSearchCourse: (val: string) => void;
+  onSearchCc: (course: string, showActiveOnly: boolean) => void;
+  onSearchUw: (course: string, showActiveOnly: boolean) => void;
 };
 
-export default function ResultsTable({ results }: Props) {
+export default function ResultsTable({ results, showActiveOnly, setSearchCourse, onSearchCc, onSearchUw }: Props) {
 
   const [tooltip, setTooltip] = useState<TooltipData>({x: 0, y: 0, data: null, visible: false});
-
   const cache = useRef(new Map<string, string>());
+  const [hoveredToken, setHoveredToken] = useState<number | null>(null);
+  const [hoveredRow, setHoveredRow] = useState<number | null>(null);
+  const [hoveredDepartment, setHoveredDepartment] = useState<string | null>(null);
+  const [hoveredColumn, setHoveredColumn] = useState<number | null>(null);
 
   const handleTagEnter = async (
     college: string,
@@ -120,6 +127,187 @@ export default function ResultsTable({ results }: Props) {
     return parts;
   }
 
+  function renderWithCourses(parts: ReactNode, rowIndex: number, columnIndex: number, department: string): ReactNode[] {
+    const text = Children.toArray(parts)
+      .map((n) => (typeof n === "string" ? n : ""))
+      .join("");
+
+    return annotateString(text, rowIndex, columnIndex, department);
+  }
+
+  function tokenize(text: string): Token[] {
+    return text
+      .split(/(\s+|,|;|\/|\(|\))/)
+      .filter(Boolean)
+      .map((t) => ({
+        text: t,
+        type: /^\s+$/.test(t)
+          ? "space"
+          : /^[A-Z0-9.&]+$/.test(t)
+          ? "word"
+          : "other",
+      }));
+  }
+
+  function isSingleLetter(s: string) {
+    return /^[A-Z]$/.test(s);
+  }
+
+  function isPrefix(s: string) {
+    return /^[A-Z&]{2,}$/.test(s);
+  }
+
+  function isSuffix(s: string) {
+    return s.includes(".")
+      ? /^[A-Z0-9.]{4,}$/.test(s)
+      : /^[A-Z0-9.]{3,}$/.test(s);
+  }
+
+  function annotateString(
+    text: string,
+    rowIndex: number,
+    columnIndex: number,
+    department: string
+  ): ReactNode[] {
+    const tokens = tokenize(text);
+    //console.log(tokens);
+
+    // hovered token index -> token indices to highlight
+    const tagMap = new Map<number, number[]>();
+
+    let currPrefix: [number, number] | null = null;
+    let currSuffix: number | null = null;
+    let firstSuffix = true;
+
+    for (let i = 0; i < tokens.length; i++) {
+      const t = tokens[i];
+
+      if (t.type !== "word") {
+        continue;
+      }
+
+      // -------------------------
+      // PREFIX
+      // -------------------------
+      if (isPrefix(t.text) || isSingleLetter(t.text)) {
+        const start = i;
+        let end = i;
+
+        while (true) {
+          const space = tokens[end + 1];
+          const next = tokens[end + 2];
+
+          if (
+            !space ||
+            !next ||
+            space.type !== "space" ||
+            next.type !== "word" ||
+            (!isPrefix(next.text) &&
+              !isSingleLetter(next.text))
+          ) {
+            break;
+          }
+
+          end += 2;
+        }
+
+        currPrefix = [start, end];
+        firstSuffix = true;
+
+        i = end;
+        continue;
+      }
+
+      // -------------------------
+      // SUFFIX
+      // -------------------------
+      if (isSuffix(t.text) && currPrefix) {
+        currSuffix = i;
+
+        const [start, end] = currPrefix;
+
+        const highlight: number[] = [];
+
+        // include all prefix tokens, including spaces
+        for (let j = start; j <= end; j++) {
+          highlight.push(j);
+        }
+
+        // include suffix
+        highlight.push(currSuffix);
+
+        // first suffix owns the prefix
+        if (firstSuffix) {
+          for (let j = start; j <= end; j++) {
+            tagMap.set(j, highlight);
+          }
+
+          firstSuffix = false;
+        }
+
+        // every suffix owns itself
+        tagMap.set(currSuffix, highlight);
+      }
+    }
+
+    /*
+    console.log("TAG MAP");
+
+    for (const [key, value] of tagMap.entries()) {
+      console.log(tokens[key].text, "=>", value);
+    }
+    */
+
+    return tokens.map((token, i) => {
+      const active =
+        hoveredToken !== null &&
+        hoveredRow === rowIndex &&
+        hoveredDepartment === department &&
+        hoveredColumn === columnIndex &&
+        tagMap.get(hoveredToken)?.includes(i);
+
+      return (
+        <span
+          key={`${department}-${rowIndex}-${columnIndex}-${i}`}
+          className={active ? "course-highlight" : ""}
+          onMouseEnter={() => {
+            //console.log("Hover:", token.text, i);
+            setHoveredToken(i);
+            setHoveredRow(rowIndex);
+            setHoveredDepartment(department);
+            setHoveredColumn(columnIndex);
+          }}
+          onMouseLeave={() => { 
+            setHoveredToken(null);
+            setHoveredRow(null);
+            setHoveredDepartment(null);
+            setHoveredColumn(null);
+          }}
+          onClick={() => {
+            if (hoveredToken === null) return;
+
+            const indices = tagMap.get(hoveredToken) || [];
+
+            const activeText = indices
+              .map(idx => tokens[idx]?.text.trim())
+              .filter(Boolean)
+              .join(" ");
+
+            setSearchCourse(activeText);
+
+            if (columnIndex === 0) {
+              onSearchCc(activeText, showActiveOnly);
+            } else if (columnIndex === 1) {
+              onSearchUw(activeText, showActiveOnly);
+            }
+          }}
+        >
+          {token.text}
+        </span>
+      );
+    });
+  }
+
   return (
     <div>
 
@@ -168,8 +356,8 @@ export default function ResultsTable({ results }: Props) {
                 )}
               </div>
 
-              <span>{row.community_college_course}</span>
-              <span>{renderWithTags(row)}</span>
+              <span>{renderWithCourses(row.community_college_course, index, 0, department)}</span>
+              <span>{renderWithCourses(renderWithTags(row), index, 1, department)}</span>
               <span>{row.uw_req}</span>
               <span>{row.effective_date}</span>
             </div>

@@ -4,7 +4,7 @@ import SearchInput from "./components/SearchInput";
 import ResultsTable from "./components/ResultsTable";
 import CurrentCourseToggler from "./components/CurrentCourseToggler";
 import { searchCcCourses, searchUwCourses } from "./db/queries";
-import type { Equivalency } from "./types";
+import type { Equivalency } from "./types/type";
 
 function App() {
   const [selectedLabel, setSelectedLabel] = useState("");
@@ -15,21 +15,21 @@ function App() {
   const[showActiveOnly, setShowActiveOnly] = useState(true);
   const[isUWSearch, setIsUwSearch] = useState(false);
 
-  const handleSearchByCcCourse = async (showActiveOnly: boolean) => {
-    if (!selectedSchool || !searchCourse) return;
+  const handleSearchByCcCourse = async (course: string, showActiveOnly: boolean) => {
+    if (!selectedSchool || !course) return;
 
     setLoading(true);
-    const res = await searchCcCourses(selectedSchool, searchCourse, showActiveOnly);
+    const res = await searchCcCourses(selectedSchool, course, showActiveOnly);
     setResults(res);
     setLoading(false);
     setIsUwSearch(false);
   };
 
-  const handleSearchByUwCourse = async (showActiveOnly: boolean) => {
-    if (!selectedSchool || !searchCourse) return;
-    
+  const handleSearchByUwCourse = async (course: string, showActiveOnly: boolean) => {
+    if (!selectedSchool || !course) return;
+
     setLoading(true);
-    const res = await searchUwCourses(selectedSchool, searchCourse, showActiveOnly);
+    const res = await searchUwCourses(selectedSchool, course, showActiveOnly);
     setResults(res);
     setLoading(false);
     setIsUwSearch(true);
@@ -39,9 +39,9 @@ function App() {
     setShowActiveOnly(checked);
 
     if (isUWSearch) {
-      handleSearchByUwCourse(checked);
+      handleSearchByUwCourse(searchCourse, checked);
     } else {
-      handleSearchByCcCourse(checked);
+      handleSearchByCcCourse(searchCourse, checked);
     }
   };
 
@@ -54,14 +54,14 @@ function App() {
         selected={selectedLabel}
         onChange={(label, groupValue) => {
           setSelectedLabel(label);   // used to control the dropdown
-          setSelectedSchool(groupValue); // used for your API/logic
+          setSelectedSchool(groupValue); // used for API
         }}
       />
 
       {/* Search Input */}
       <SearchInput
         query={searchCourse}
-        onChange={setSearchCourse}
+        onChange={(value) => setSearchCourse(value)}
         onSearchCc={handleSearchByCcCourse}
         onSearchUw={handleSearchByUwCourse}
         showActiveOnly={showActiveOnly}
@@ -77,7 +77,13 @@ function App() {
 
       {/* Results */}
       <div className="results-section">
-        <ResultsTable results={results} />
+        <ResultsTable
+          showActiveOnly={showActiveOnly}
+          results={results}
+          setSearchCourse={setSearchCourse}
+          onSearchCc={handleSearchByCcCourse}
+          onSearchUw={handleSearchByUwCourse}
+         />
       </div>
 
     </div>
