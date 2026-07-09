@@ -9,7 +9,7 @@ export async function getDB(): Promise<Database> {
   if (db) return db;
 
   const SQL = await initSqlJs({
-    locateFile: () => "/sql-wasm.wasm", // 🔥 force correct file
+    locateFile: () => "/sql-wasm.wasm", // force correct file
   });
 
   const response = await fetch("/equivalencies.db");
