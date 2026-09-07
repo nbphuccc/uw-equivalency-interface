@@ -14,6 +14,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const[showActiveOnly, setShowActiveOnly] = useState(true);
   const[isUWSearch, setIsUwSearch] = useState(false);
+  const [planner, setPlanner] = useState<Equivalency[]>([]);
 
   const handleSearchByCcCourse = async (course: string, showActiveOnly: boolean) => {
     if (!selectedSchool || !course) return;
@@ -83,6 +84,8 @@ function App() {
           setSearchCourse={setSearchCourse}
           onSearchCc={handleSearchByCcCourse}
           onSearchUw={handleSearchByUwCourse}
+          planner={planner}
+          setPlanner={setPlanner}
          />
       </div>
 

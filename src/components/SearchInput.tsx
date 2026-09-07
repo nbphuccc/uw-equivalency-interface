@@ -1,4 +1,3 @@
-// SearchInput.tsx
 type Props = {
   query: string;
   onChange: (value: string) => void;

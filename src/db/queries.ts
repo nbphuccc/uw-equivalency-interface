@@ -80,7 +80,7 @@ async function searchCourses(
   const db = await getDB();
 
   let sql = `
-    SELECT *
+    SELECT rowid, *
     FROM equivalencies
     WHERE college_name = ?
   `;

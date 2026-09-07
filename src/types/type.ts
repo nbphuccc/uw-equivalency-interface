@@ -1,4 +1,5 @@
 export type Equivalency = {
+  rowid: number;
   college_name: string;
   department: string;
   community_college_course: string;
@@ -20,3 +21,10 @@ export type Token = {
   text: string;
   type: "word" | "space" | "other";
 };
+
+export type HoveredToken = {
+  position: number | null;
+  row: number | null;
+  column: number | null;
+  department: string | null;
+}

@@ -1,6 +1,6 @@
 type Props = {
-  selected: string;       // ← now stores the label, e.g. "Seattle Central College"
-  onChange: (label: string, groupValue: string) => void; // ← passes both up
+  selected: string;
+  onChange: (label: string, groupValue: string) => void;
 };
 
 const colleges = [
