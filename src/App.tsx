@@ -1,39 +1,70 @@
 import { useState } from "react";
-import SchoolSelector from "./components/SchoolSelector";
 import SearchInput from "./components/SearchInput";
 import ResultsTable from "./components/ResultsTable";
 import CurrentCourseToggler from "./components/CurrentCourseToggler";
 import { searchCcCourses, searchUwCourses } from "./db/queries";
 import type { Equivalency } from "./types/type";
+import Planner from "./components/Planner";
+import CollegeSelector from "./components/CollegeSelector";
 
 function App() {
   const [selectedLabel, setSelectedLabel] = useState("");
-  const [selectedSchool, setSelectedSchool] = useState("");
+  const [selectedCollege, setSelectedCollege] = useState("");
   const [searchCourse, setSearchCourse] = useState("");
   const [results, setResults] = useState<Equivalency[]>([]);
   const [loading, setLoading] = useState(false);
-  const[showActiveOnly, setShowActiveOnly] = useState(true);
-  const[isUWSearch, setIsUwSearch] = useState(false);
+  const [showActiveOnly, setShowActiveOnly] = useState(true);
+  const [isUWSearch, setIsUwSearch] = useState(false);
   const [planner, setPlanner] = useState<Equivalency[]>([]);
 
-  const handleSearchByCcCourse = async (course: string, showActiveOnly: boolean) => {
-    if (!selectedSchool || !course) return;
+  const handleSearchByCcCourse = async (
+    course: string,
+    showActiveOnly: boolean,
+    collegeName?: string
+  ) => {
+    const collegeToSearch = collegeName || selectedCollege;
+
+    if (!collegeToSearch || !course) return;
 
     setLoading(true);
-    const res = await searchCcCourses(selectedSchool, course, showActiveOnly);
-    setResults(res);
-    setLoading(false);
-    setIsUwSearch(false);
+
+    try {
+      const res = await searchCcCourses(
+        collegeToSearch,
+        course,
+        showActiveOnly
+      );
+
+      setResults(res);
+      setIsUwSearch(false);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSearchByUwCourse = async (course: string, showActiveOnly: boolean) => {
-    if (!selectedSchool || !course) return;
+  const handleSearchByUwCourse = async (
+    course: string,
+    showActiveOnly: boolean,
+    collegeName?: string
+  ) => {
+    const collegeToSearch = collegeName || selectedCollege;
+
+    if (!collegeToSearch || !course) return;
 
     setLoading(true);
-    const res = await searchUwCourses(selectedSchool, course, showActiveOnly);
-    setResults(res);
-    setLoading(false);
-    setIsUwSearch(true);
+
+    try {
+      const res = await searchUwCourses(
+        collegeToSearch,
+        course,
+        showActiveOnly
+      );
+
+      setResults(res);
+      setIsUwSearch(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleToggleCourse = async (checked: boolean) => {
@@ -46,17 +77,19 @@ function App() {
     }
   };
 
+  const handleSelectCollege = (collegeName: string, collegeGroup: string) => {
+    setSelectedLabel(collegeName);
+    setSelectedCollege(collegeGroup);
+  }
+
   return (
     <div style={{ padding: 20 }}>
       <h1>UW Equivalency Interface</h1>
 
       {/* School Dropdown */}
-      <SchoolSelector
+      <CollegeSelector
         selected={selectedLabel}
-        onChange={(label, groupValue) => {
-          setSelectedLabel(label);   // used to control the dropdown
-          setSelectedSchool(groupValue); // used for API
-        }}
+        onChange={handleSelectCollege}
       />
 
       {/* Search Input */}
@@ -75,6 +108,19 @@ function App() {
 
       {/* Loading */}
       {loading && <p>Loading...</p>}
+
+      {/* Planner */}
+      <div className="planner-section">
+        <Planner
+          showActiveOnly={showActiveOnly}
+          planner={planner}
+          setSearchCourse={setSearchCourse}
+          setSelectedCollege={handleSelectCollege}
+          onSearchCc={handleSearchByCcCourse}
+          onSearchUw={handleSearchByUwCourse}
+          setPlanner={setPlanner}
+        />
+      </div>
 
       {/* Results */}
       <div className="results-section">

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import type { Equivalency, HoveredToken, Token } from "../types/type";
+import { colleges } from "../utils/collegeGrouping";
 
 const TAGS = [
   { key: "Further study", label: "Further study" },
@@ -17,12 +18,13 @@ type Props = {
   handleTagEnter: (college: string, department: string, code: string) => void;
   handleTagMove: (x: number, y: number) => void;
   hideTooltip: () => void;
-  onSearchCc: (course: string, showActiveOnly: boolean) => void;
-  onSearchUw: (course: string, showActiveOnly: boolean) => void;
+  onSearchCc: (course: string, showActiveOnly: boolean, college: string) => void;
+  onSearchUw: (course: string, showActiveOnly: boolean, college: string) => void;
   setSearchCourse: (val: string) => void;
+  setSelectedCollege?: (collegeName: string, collegeGroup: string) => void;
 };
 
-export default function RowTextProcessing({ row, hoveredToken, showActiveOnly, rowIndex, columnIndex, setHoveredToken, handleTagEnter, handleTagMove, hideTooltip, onSearchCc, onSearchUw, setSearchCourse }: Props) {
+export default function RowTextProcessing({ row, hoveredToken, showActiveOnly, rowIndex, columnIndex, setHoveredToken, handleTagEnter, handleTagMove, hideTooltip, onSearchCc, onSearchUw, setSearchCourse, setSelectedCollege }: Props) {
 
   function renderAdvisoryTags(parts: ReactNode[]): ReactNode[] {
     TAGS.forEach((tag) => {
@@ -217,11 +219,28 @@ export default function RowTextProcessing({ row, hoveredToken, showActiveOnly, r
               .join(" ");
 
             setSearchCourse(activeText);
+            if (setSelectedCollege) {
+              const collegeGroup = row.college_name;
+
+              const matchingColleges = colleges.filter(
+                (college) => college.group === collegeGroup
+              );
+
+              const collegeName =
+                matchingColleges.length === 1
+                  ? matchingColleges[0].name
+                  : collegeGroup;
+
+              setSelectedCollege(collegeName, collegeGroup);
+            }
 
             if (columnIndex === 0) {
-              onSearchCc(activeText, showActiveOnly);
+              console.log(row);
+              console.log("Searching CC:", activeText, showActiveOnly, row.college_name);
+              onSearchCc(activeText, showActiveOnly, row.college_name);
             } else if (columnIndex === 1) {
-              onSearchUw(activeText, showActiveOnly);
+              console.log("Searching UW:", activeText, showActiveOnly, row.college_name);
+              onSearchUw(activeText, showActiveOnly, row.college_name);
             }
           }}
         >

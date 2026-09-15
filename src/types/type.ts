@@ -1,3 +1,4 @@
+// do not modify. same as db schema
 export type Equivalency = {
   rowid: number;
   college_name: string;
