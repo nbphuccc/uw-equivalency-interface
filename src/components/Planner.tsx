@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useLayoutEffect, useRef } from "react";
 import { useAdvisoryTooltip } from "../hooks/useAdvisoryTooltip";
 import type { Equivalency, HoveredToken } from "../types/type";
 import RowTextProcessing from "./RowTextProcessing";
@@ -26,12 +26,30 @@ export default function Planner({
 }: Props) {
 
     const [isExpanded, setIsExpanded] = useState(false);
+    const [contentHeight, setContentHeight] = useState(0);
+    const plannerContentRef = useRef<HTMLDivElement>(null);
   const [hoveredToken, setHoveredToken] = useState<HoveredToken>({
     position: null,
     row: null,
     column: null,
     department: null,
   });
+
+  useLayoutEffect(() => {
+  const content = plannerContentRef.current;
+  if (!content) return;
+
+  const updateHeight = () => {
+    setContentHeight(content.scrollHeight);
+  };
+
+  updateHeight();
+
+  const resizeObserver = new ResizeObserver(updateHeight);
+  resizeObserver.observe(content);
+
+  return () => resizeObserver.disconnect();
+}, []);
 
   const grouped = groupByCommunityCollege(planner);
 
@@ -42,9 +60,7 @@ export default function Planner({
     hideTooltip,
   } = useAdvisoryTooltip();
 
-  if (planner.length === 0) return null;
-
-return (
+    return (
   <div className="planner">
     <button
       type="button"
@@ -53,116 +69,146 @@ return (
       aria-expanded={isExpanded}
       aria-controls="planner-content"
     >
-      <span>Planner ({planner.length})</span>
-      <span aria-hidden="true">{isExpanded ? "▲" : "▼"}</span>
+      <span>
+        {planner.length === 0
+          ? "Planner (Empty)"
+          : `Planner (${planner.length})`}
+      </span>
+
+      <span
+        className={`planner-arrow ${isExpanded ? "expanded" : ""}`}
+        aria-hidden="true"
+      >
+        ▼
+      </span>
     </button>
 
-    {isExpanded && (
-      <div id="planner-content">
-        {tooltip.visible && tooltip.data && (
-          <div
-            className="tooltip"
-            style={{
-              top: tooltip.y,
-              left: tooltip.x,
-            }}
-          >
-            {tooltip.data}
-          </div>
-        )}
-
-        {Object.entries(grouped).map(([collegeName, rows]) => (
-          <div key={collegeName} className="department">
-            <h3 className="department-header">{collegeName}</h3>
-
-            <div className="results-grid results-header">
-              <span></span>
-              <span>Course</span>
-              <span>UW Equivalent</span>
-              <span>UW Req</span>
-              <span>Effective Date</span>
-              <span>Remove from Planner</span>
-            </div>
-
-            {rows.map((row, index) => (
+    <div
+        id="planner-content"
+        className="planner-content-wrapper"
+        style={{
+            height: isExpanded ? `${contentHeight}px` : "0px",
+        }}
+        aria-hidden={!isExpanded}
+    >
+    <div
+        ref={plannerContentRef}
+        className={`planner-content ${isExpanded ? "expanded" : ""}`}
+    >
+        {planner.length === 0 ? (
+          <p className="planner-empty">
+            No courses have been added to the planner.
+          </p>
+        ) : (
+          <>
+            {tooltip.visible && tooltip.data && (
               <div
-                key={row.rowid}
-                className="results-grid results-row"
+                className="tooltip"
+                style={{
+                  top: tooltip.y,
+                  left: tooltip.x,
+                }}
               >
-                <div className="results-grid tag-column">
-                  {row.current_course === 1 && (
-                    <div className="current-version">
-                      Current Version
-                    </div>
-                  )}
+                {tooltip.data}
+              </div>
+            )}
 
-                  {(row.community_college_course?.includes("*") ||
-                    row.department.includes("*")) && (
-                    <div className="foreign-language">
-                      Foreign Language
-                    </div>
-                  )}
+            {Object.entries(grouped).map(([collegeName, rows]) => (
+              <div key={collegeName} className="department">
+                <h3 className="department-header">
+                  {collegeName}
+                </h3>
+
+                <div className="results-grid results-header">
+                  <span></span>
+                  <span>Course</span>
+                  <span>UW Equivalent</span>
+                  <span>UW Req</span>
+                  <span>Effective Date</span>
+                  <span>Remove from Planner</span>
                 </div>
 
-                <span>
-                  <RowTextProcessing
-                    row={row}
-                    rowIndex={index}
-                    columnIndex={0}
-                    hoveredToken={hoveredToken}
-                    setHoveredToken={setHoveredToken}
-                    showActiveOnly={showActiveOnly}
-                    handleTagEnter={handleTagEnter}
-                    handleTagMove={handleTagMove}
-                    hideTooltip={hideTooltip}
-                    onSearchCc={onSearchCc}
-                    onSearchUw={onSearchUw}
-                    setSearchCourse={setSearchCourse}
-                    setSelectedCollege={setSelectedCollege}
-                  />
-                </span>
+                {rows.map((row, index) => (
+                  <div
+                    key={row.rowid}
+                    className="results-grid results-row"
+                  >
+                    <div className="results-grid tag-column">
+                      {row.current_course === 1 && (
+                        <div className="current-version">
+                          Current Version
+                        </div>
+                      )}
 
-                <span>
-                  <RowTextProcessing
-                    row={row}
-                    rowIndex={index}
-                    columnIndex={1}
-                    hoveredToken={hoveredToken}
-                    setHoveredToken={setHoveredToken}
-                    showActiveOnly={showActiveOnly}
-                    handleTagEnter={handleTagEnter}
-                    handleTagMove={handleTagMove}
-                    hideTooltip={hideTooltip}
-                    onSearchCc={onSearchCc}
-                    onSearchUw={onSearchUw}
-                    setSearchCourse={setSearchCourse}
-                    setSelectedCollege={setSelectedCollege}
-                  />
-                </span>
+                      {(row.community_college_course?.includes("*") ||
+                        row.department.includes("*")) && (
+                        <div className="foreign-language">
+                          Foreign Language
+                        </div>
+                      )}
+                    </div>
 
-                <span>{row.uw_req}</span>
-                <span>{row.effective_date}</span>
+                    <span>
+                      <RowTextProcessing
+                        row={row}
+                        rowIndex={index}
+                        columnIndex={0}
+                        hoveredToken={hoveredToken}
+                        setHoveredToken={setHoveredToken}
+                        showActiveOnly={showActiveOnly}
+                        handleTagEnter={handleTagEnter}
+                        handleTagMove={handleTagMove}
+                        hideTooltip={hideTooltip}
+                        onSearchCc={onSearchCc}
+                        onSearchUw={onSearchUw}
+                        setSearchCourse={setSearchCourse}
+                        setSelectedCollege={setSelectedCollege}
+                      />
+                    </span>
 
-                <span>
-                  <input
-                    type="checkbox"
-                    checked
-                    aria-label={`Remove ${row.community_college_course} from planner`}
-                    onChange={() => {
-                      setPlanner((previous) =>
-                        previous.filter(
-                          (item) => item.rowid !== row.rowid
-                        )
-                      );
-                    }}
-                  />
-                </span>
+                    <span>
+                      <RowTextProcessing
+                        row={row}
+                        rowIndex={index}
+                        columnIndex={1}
+                        hoveredToken={hoveredToken}
+                        setHoveredToken={setHoveredToken}
+                        showActiveOnly={showActiveOnly}
+                        handleTagEnter={handleTagEnter}
+                        handleTagMove={handleTagMove}
+                        hideTooltip={hideTooltip}
+                        onSearchCc={onSearchCc}
+                        onSearchUw={onSearchUw}
+                        setSearchCourse={setSearchCourse}
+                        setSelectedCollege={setSelectedCollege}
+                      />
+                    </span>
+
+                    <span>{row.uw_req}</span>
+                    <span>{row.effective_date}</span>
+
+                    <span>
+                      <input
+                        type="checkbox"
+                        checked
+                        aria-label={`Remove ${row.community_college_course} from planner`}
+                        onChange={() => {
+                          setPlanner((previous) =>
+                            previous.filter(
+                              (item) => item.rowid !== row.rowid
+                            )
+                          );
+                        }}
+                      />
+                    </span>
+                  </div>
+                ))}
               </div>
             ))}
-          </div>
-        ))}
+          </>
+        )}
       </div>
-    )}
+    </div>
   </div>
 );
 }
