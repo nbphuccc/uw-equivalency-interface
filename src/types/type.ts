@@ -18,6 +18,16 @@ export type TooltipData = {
   visible: boolean;
 };
 
+export type AdvisoryTooltipHandlers = {
+  handleTagEnter: (
+    college: string,
+    department: string,
+    code: string
+  ) => void;
+  handleTagMove: (x: number, y: number) => void;
+  hideTooltip: () => void;
+};
+
 export type Token = {
   text: string;
   type: "word" | "space" | "other";

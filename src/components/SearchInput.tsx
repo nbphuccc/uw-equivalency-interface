@@ -1,3 +1,6 @@
+import "./SearchInput.css";
+
+
 type Props = {
   query: string;
   onChange: (value: string) => void;
@@ -8,21 +11,25 @@ type Props = {
 
 export default function SearchInput({ query, onChange, onSearchCc, onSearchUw, showActiveOnly }: Props) {
   return (
-    <div style={{ marginBottom: 16 }}>
+    <div className="course-search">
       <input
+        className="course-search-input"
         type="text"
         placeholder="Enter course name..."
         value={query}
         onChange={(e) => onChange(e.target.value.toUpperCase())}
-        style={{ marginRight: 8 }}
       />
-      <button onClick={() => onSearchCc(query, showActiveOnly)}>
+
+      <button
+        className="cc-search-button"
+        onClick={() => onSearchCc(query, showActiveOnly)}
+      >
         Search CC Course
       </button>
 
       <button
+        className="uw-search-button"
         onClick={() => onSearchUw(query, showActiveOnly)}
-        style={{ marginLeft: 8 }}
       >
         Search UW Course
       </button>

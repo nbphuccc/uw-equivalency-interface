@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { Dispatch, ReactNode, SetStateAction } from "react";
 import type { Equivalency, HoveredToken, Token } from "../types/type";
 import { colleges } from "../utils/collegeGrouping";
 
@@ -8,259 +8,292 @@ const TAGS = [
   { key: "numeric equivalent", label: "Numeric equivalent" },
 ];
 
+type AdvisoryTag = (typeof TAGS)[number];
+type HighlightMap = Map<number, number[]>;
+type AdvisoryMatch = { tag: AdvisoryTag; closingIndex: number };
+
 type Props = {
   row: Equivalency;
   hoveredToken: HoveredToken;
   showActiveOnly: boolean;
   rowIndex: number;
   columnIndex: number;
-  setHoveredToken: React.Dispatch<React.SetStateAction<HoveredToken>>;
+  setHoveredToken: Dispatch<SetStateAction<HoveredToken>>;
   handleTagEnter: (college: string, department: string, code: string) => void;
   handleTagMove: (x: number, y: number) => void;
   hideTooltip: () => void;
-  onSearchCc: (course: string, showActiveOnly: boolean, college: string) => void;
-  onSearchUw: (course: string, showActiveOnly: boolean, college: string) => void;
+  onSearchCc: (
+    course: string,
+    showActiveOnly: boolean,
+    college: string,
+  ) => void;
+  onSearchUw: (
+    course: string,
+    showActiveOnly: boolean,
+    college: string,
+  ) => void;
   setSearchCourse: (val: string) => void;
   setSelectedCollege?: (collegeName: string, collegeGroup: string) => void;
 };
 
-export default function RowTextProcessing({ row, hoveredToken, showActiveOnly, rowIndex, columnIndex, setHoveredToken, handleTagEnter, handleTagMove, hideTooltip, onSearchCc, onSearchUw, setSearchCourse, setSelectedCollege }: Props) {
-
-  function renderAdvisoryTags(parts: ReactNode[]): ReactNode[] {
-    TAGS.forEach((tag) => {
-      parts = parts.flatMap((part) => {
-        if (typeof part !== "string") return [part];
-
-        const result: ReactNode[] = [];
-        const tokens = part.split(/(\([^()]*\))/g);
-
-        tokens.forEach((token, i) => {
-          const match = token.match(/^\((.+)\)$/);
-
-          if (match && match[1] === tag.key) {
-            result.push(
-              <span
-                key={`${tag.key}-${i}`}
-                onMouseEnter={() =>
-                  handleTagEnter(
-                    row.college_name,
-                    row.department,
-                    tag.key
-                  )
-                }
-                onMouseMove={(e) =>
-                  handleTagMove(e.clientX, e.clientY)
-                }
-                onMouseLeave={hideTooltip}
-                className="advisory-tag"
-              >
-                {tag.label}
-              </span>
-            );
-          } else {
-            result.push(token);
-          }
-        });
-
-        return result;
-      });
-    });
-
-    return parts;
-  }
-
-  function renderHighlightedCourses(parts: ReactNode[], rowIndex: number, columnIndex: number, department: string): ReactNode[] {
-    return parts.flatMap((part) => {
-      if (typeof part !== "string") {
-        return [part];
-      }
-
-      return annotateString(part, rowIndex, columnIndex, department);
-    });
-  }
-  
-  function tokenize(text: string): Token[] {
-    return text
-      .split(/(\s+|,|;|\/|\(|\))/)
-      .filter(Boolean)
-      .map((t) => ({
-        text: t,
-        type: /^\s+$/.test(t)
-          ? "space"
-          : /^[A-Z0-9.&]+$/.test(t)
+function tokenize(text: string): Token[] {
+  return text
+    .split(/(\s+|,|;|\/|\(|\))/)
+    .filter(Boolean)
+    .map((text) => ({
+      text,
+      type: /^\s+$/.test(text)
+        ? "space"
+        : /^[A-Z0-9.&]+$/.test(text)
           ? "word"
           : "other",
-      }));
-  }
-  
-  function isSingleLetter(s: string) {
-    return /^[A-Z]$/.test(s);
-  }
+    }));
+}
 
-  function isPrefix(s: string) {
-    return /^[A-Z&]{2,}$/.test(s);
-  }
+function isSingleLetter(text: string): boolean {
+  return /^[A-Z]$/.test(text);
+}
 
-  function isSuffix(s: string) {
-    return s.includes(".")
-      ? /^[A-Z0-9.]{4,}$/.test(s)
-      : /^[A-Z0-9.]{3,}$/.test(s);
-  }
+function isPrefix(text: string): boolean {
+  return /^[A-Z&]{2,}$/.test(text);
+}
 
-  function annotateString(text: string, rowIndex: number, columnIndex: number, department: string): ReactNode[] {
-    const tokens = tokenize(text);
-    //console.log(tokens);
+function isSuffix(text: string): boolean {
+  return text.includes(".")
+    ? /^[A-Z0-9.]{4,}$/.test(text)
+    : /^[A-Z0-9.]{3,}$/.test(text);
+}
 
-    // hovered token index -> token indices to highlight
-    const tagMap = new Map<number, number[]>();
+function findPrefixEnd(tokens: Token[], start: number): number {
+  let end = start;
 
-    let currPrefix: [number, number] | null = null;
-    let currSuffix: number | null = null;
-    let firstSuffix = true;
+  while (true) {
+    const space = tokens[end + 1];
+    const next = tokens[end + 2];
 
-    for (let i = 0; i < tokens.length; i++) {
-      const t = tokens[i];
-
-      if (t.type !== "word") {
-        continue;
-      }
-
-      // -------------------------
-      // PREFIX
-      // -------------------------
-      if (isPrefix(t.text) || isSingleLetter(t.text)) {
-        const start = i;
-        let end = i;
-
-        while (true) {
-          const space = tokens[end + 1];
-          const next = tokens[end + 2];
-
-          if (
-            !space ||
-            !next ||
-            space.type !== "space" ||
-            next.type !== "word" ||
-            (!isPrefix(next.text) &&
-              !isSingleLetter(next.text))
-          ) {
-            break;
-          }
-
-          end += 2;
-        }
-
-        currPrefix = [start, end];
-        firstSuffix = true;
-
-        i = end;
-        continue;
-      }
-
-      // -------------------------
-      // SUFFIX
-      // -------------------------
-      if (isSuffix(t.text) && currPrefix) {
-        currSuffix = i;
-
-        const [start, end] = currPrefix;
-
-        const highlight: number[] = [];
-
-        // include all prefix tokens, including spaces
-        for (let j = start; j <= end; j++) {
-          highlight.push(j);
-        }
-
-        // include suffix
-        highlight.push(currSuffix);
-
-        // first suffix owns the prefix
-        if (firstSuffix) {
-          for (let j = start; j <= end; j++) {
-            tagMap.set(j, highlight);
-          }
-
-          firstSuffix = false;
-        }
-
-        // every suffix owns itself
-        tagMap.set(currSuffix, highlight);
-      }
+    if (
+      !space ||
+      !next ||
+      space.type !== "space" ||
+      next.type !== "word" ||
+      (!isPrefix(next.text) && !isSingleLetter(next.text))
+    ) {
+      return end;
     }
 
-    return tokens.map((token, i) => {
-      const active =
-        hoveredToken.position !== null &&
-        hoveredToken.row === rowIndex &&
-        hoveredToken.department === department &&
-        hoveredToken.column === columnIndex &&
-        tagMap.get(hoveredToken.position)?.includes(i);
+    end += 2;
+  }
+}
 
-      return (
-        <span
-          key={`${department}-${rowIndex}-${columnIndex}-${i}`}
-          className={active ? "course-highlight" : ""}
-          onMouseEnter={() => {
-            //console.log("Hover:", token.text, i);
-            setHoveredToken({position: i, row: rowIndex, column: columnIndex, department: department});
-          }}
-          onMouseLeave={() => { 
-            setHoveredToken({position: null, row: null, column: null, department: null});
-          }}
-          onClick={() => {
-            if (hoveredToken.position === null) return;
+function buildHighlightMap(tokens: Token[]): HighlightMap {
+  const highlightMap: HighlightMap = new Map();
+  let currentPrefix: [number, number] | null = null;
+  let firstSuffix = true;
 
-            const indices = tagMap.get(hoveredToken.position) || [];
+  for (let i = 0; i < tokens.length; i++) {
+    const token = tokens[i];
 
-            const activeText = indices
-              .map(idx => tokens[idx]?.text.trim())
-              .filter(Boolean)
-              .join(" ");
+    if (token.type !== "word") continue;
 
-            setSearchCourse(activeText);
-            if (setSelectedCollege) {
-              const collegeGroup = row.college_name;
+    if (isPrefix(token.text) || isSingleLetter(token.text)) {
+      const end = findPrefixEnd(tokens, i);
+      currentPrefix = [i, end];
+      firstSuffix = true;
+      i = end;
+      continue;
+    }
 
-              const matchingColleges = colleges.filter(
-                (college) => college.group === collegeGroup
-              );
+    if (!isSuffix(token.text) || !currentPrefix) continue;
 
-              const collegeName =
-                matchingColleges.length === 1
-                  ? matchingColleges[0].name
-                  : collegeGroup;
+    const [start, end] = currentPrefix;
+    const highlightedIndices: number[] = [];
 
-              setSelectedCollege(collegeName, collegeGroup);
-            }
+    for (let j = start; j <= end; j++) {
+      highlightedIndices.push(j);
+    }
 
-            if (columnIndex === 0) {
-              console.log(row);
-              console.log("Searching CC:", activeText, showActiveOnly, row.college_name);
-              onSearchCc(activeText, showActiveOnly, row.college_name);
-            } else if (columnIndex === 1) {
-              console.log("Searching UW:", activeText, showActiveOnly, row.college_name);
-              onSearchUw(activeText, showActiveOnly, row.college_name);
-            }
-          }}
-        >
-          {token.text}
-        </span>
+    highlightedIndices.push(i);
+
+    if (firstSuffix) {
+      for (let j = start; j <= end; j++) {
+        highlightMap.set(j, highlightedIndices);
+      }
+
+      firstSuffix = false;
+    }
+
+    highlightMap.set(i, highlightedIndices);
+  }
+
+  return highlightMap;
+}
+
+function findAdvisoryTag(
+  tokens: Token[],
+  openingIndex: number,
+): AdvisoryMatch | null {
+  if (tokens[openingIndex]?.text !== "(") return null;
+
+  const closingIndex = tokens.findIndex(
+    (token, index) => index > openingIndex && token.text === ")",
+  );
+
+  if (closingIndex === -1) return null;
+
+  const advisoryText = tokens
+    .slice(openingIndex + 1, closingIndex)
+    .map((token) => token.text)
+    .join("")
+    .trim()
+    .replace(/\s+/g, " ");
+
+  const tag = TAGS.find((candidate) => candidate.key === advisoryText);
+  return tag ? { tag, closingIndex } : null;
+}
+
+export default function RowTextProcessing({
+  row,
+  hoveredToken,
+  showActiveOnly,
+  rowIndex,
+  columnIndex,
+  setHoveredToken,
+  handleTagEnter,
+  handleTagMove,
+  hideTooltip,
+  onSearchCc,
+  onSearchUw,
+  setSearchCourse,
+  setSelectedCollege,
+}: Props) {
+  function updateSelectedCollege(): void {
+    if (!setSelectedCollege) return;
+
+    const collegeGroup = row.college_name;
+    const matchingColleges = colleges.filter(
+      (college) => college.group === collegeGroup,
+    );
+    const collegeName =
+      matchingColleges.length === 1 ? matchingColleges[0].name : collegeGroup;
+
+    setSelectedCollege(collegeName, collegeGroup);
+  }
+
+  function handleCourseClick(
+    tokens: Token[],
+    highlightMap: HighlightMap,
+  ): void {
+    if (hoveredToken.position === null) return;
+
+    const indices = highlightMap.get(hoveredToken.position) ?? [];
+    const activeText = indices
+      .map((index) => tokens[index]?.text.trim())
+      .filter(Boolean)
+      .join(" ");
+
+    setSearchCourse(activeText);
+    updateSelectedCollege();
+
+    if (columnIndex === 0) {
+      onSearchCc(activeText, showActiveOnly, row.college_name);
+    } else if (columnIndex === 1) {
+      onSearchUw(activeText, showActiveOnly, row.college_name);
+    }
+  }
+
+  function renderAdvisoryTag(tag: AdvisoryTag, tokenIndex: number): ReactNode {
+    return (
+      <span
+        key={`advisory-${row.department}-${rowIndex}-${columnIndex}-${tokenIndex}`}
+        className="advisory-tag"
+        onMouseEnter={() =>
+          handleTagEnter(row.college_name, row.department, tag.key)
+        }
+        onMouseMove={(event) => handleTagMove(event.clientX, event.clientY)}
+        onMouseLeave={hideTooltip}
+      >
+        {tag.label}
+      </span>
+    );
+  }
+
+  function renderCourseToken(
+    token: Token,
+    tokenIndex: number,
+    tokens: Token[],
+    highlightMap: HighlightMap,
+    department: string,
+  ): ReactNode {
+    const active =
+      hoveredToken.position !== null &&
+      hoveredToken.row === rowIndex &&
+      hoveredToken.department === department &&
+      hoveredToken.column === columnIndex &&
+      highlightMap.get(hoveredToken.position)?.includes(tokenIndex);
+
+    return (
+      <span
+        key={`${department}-${rowIndex}-${columnIndex}-${tokenIndex}`}
+        className={active ? "course-highlight" : ""}
+        onMouseEnter={() =>
+          setHoveredToken({
+            position: tokenIndex,
+            row: rowIndex,
+            column: columnIndex,
+            department,
+          })
+        }
+        onMouseLeave={() =>
+          setHoveredToken({
+            position: null,
+            row: null,
+            column: null,
+            department: null,
+          })
+        }
+        onClick={() => handleCourseClick(tokens, highlightMap)}
+      >
+        {token.text}
+      </span>
+    );
+  }
+
+  function renderTokens(
+    tokens: Token[],
+    highlightMap: HighlightMap,
+    department: string,
+  ): ReactNode[] {
+    const rendered: ReactNode[] = [];
+
+    for (let i = 0; i < tokens.length; i++) {
+      const advisory = findAdvisoryTag(tokens, i);
+
+      if (advisory) {
+        rendered.push(renderAdvisoryTag(advisory.tag, i));
+        i = advisory.closingIndex;
+        continue;
+      }
+
+      rendered.push(
+        renderCourseToken(tokens[i], i, tokens, highlightMap, department),
       );
-    });
+    }
+
+    return rendered;
   }
 
-  let parts: ReactNode[] = [];
-
-  if (columnIndex === 0) {
-    parts = [row.community_college_course];
-  } else if (columnIndex === 1) {
-    parts = [row.uw_equivalent];
+  function annotateString(text: string, department: string): ReactNode[] {
+    const tokens = tokenize(text);
+    const highlightMap = buildHighlightMap(tokens);
+    return renderTokens(tokens, highlightMap, department);
   }
 
-  parts = renderHighlightedCourses(parts, rowIndex, columnIndex, row.department);
+  const text =
+    columnIndex === 0
+      ? row.community_college_course
+      : columnIndex === 1
+        ? row.uw_equivalent
+        : "";
 
-  parts = renderAdvisoryTags(parts);
-
-  return <>{parts}</>;
+  return <>{annotateString(text, row.department)}</>;
 }

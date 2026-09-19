@@ -1,4 +1,5 @@
 import { colleges } from "../utils/collegeGrouping";
+import "./CollegeSelector.css";
 
 type Props = {
   selected: string;
@@ -11,10 +12,18 @@ export default function CollegeSelector({ selected, onChange }: Props) {
   );
 
   return (
-    <div style={{ marginBottom: 16 }}>
-      <label style={{ marginRight: 8 }}>Select College:</label>
+  <div className="college-selector">
+    <label
+      className="college-selector-label"
+      htmlFor="college-select"
+    >
+      Select College
+    </label>
 
+    <div className="college-select-wrapper">
       <select
+        id="college-select"
+        className="college-select"
         value={selected}
         onChange={(e) => {
           const opt = colleges.find(
@@ -26,9 +35,8 @@ export default function CollegeSelector({ selected, onChange }: Props) {
           }
         }}
       >
-        <option value="">-- Choose a college --</option>
+        <option value="">Choose a college</option>
 
-        {/* Display the current group even though it isn't selectable */}
         {selected && !isListedCollege && (
           <option value={selected} disabled>
             {selected}
@@ -41,6 +49,11 @@ export default function CollegeSelector({ selected, onChange }: Props) {
           </option>
         ))}
       </select>
+
+      <span className="college-select-arrow" aria-hidden="true">
+        ▼
+      </span>
     </div>
-  );
+  </div>
+);
 }

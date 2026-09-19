@@ -1,4 +1,3 @@
-import { useAdvisoryTooltip } from "../hooks/useAdvisoryTooltip";
 import type { Equivalency, HoveredToken } from "../types/type";
 import "./ResultsTable.css";
 import { useState } from "react";
@@ -13,32 +12,27 @@ type Props = {
   onSearchCc: (course: string, showActiveOnly: boolean) => void;
   onSearchUw: (course: string, showActiveOnly: boolean) => void;
   setPlanner: React.Dispatch<React.SetStateAction<Equivalency[]>>;
+  tooltipHandlers: {
+    handleTagEnter: (
+      college: string,
+      department: string,
+      code: string
+    ) => void;
+    handleTagMove: (x: number, y: number) => void;
+    hideTooltip: () => void;
+  };
 };
 
-export default function ResultsTable({ results, showActiveOnly, planner, setSearchCourse, onSearchCc, onSearchUw, setPlanner }: Props) {
+export default function ResultsTable({ results, showActiveOnly, planner, setSearchCourse, onSearchCc, onSearchUw, setPlanner, tooltipHandlers }: Props) {
   
   const [hoveredToken, setHoveredToken] = useState<HoveredToken>({position: null, row: null, column: null, department: null,});
 
   const grouped = groupByDepartment(results);
-
-  const {tooltip, handleTagEnter, handleTagMove, hideTooltip} = useAdvisoryTooltip();
   
   if (results.length === 0) return null;
 
   return (
     <div>
-      {tooltip.visible && tooltip.data && (
-        <div
-          className="tooltip"
-          style={{
-            top: tooltip.y,
-            left: tooltip.x,
-          }}
-        >
-          {tooltip.data}
-        </div>
-      )}
-
       {Object.entries(grouped).map(([department, rows]) => (
         <div key={department} className="department">
 
@@ -81,9 +75,7 @@ export default function ResultsTable({ results, showActiveOnly, planner, setSear
                   hoveredToken={hoveredToken}
                   setHoveredToken={setHoveredToken}
                   showActiveOnly={showActiveOnly}
-                  handleTagEnter={handleTagEnter}
-                  handleTagMove={handleTagMove}
-                  hideTooltip={hideTooltip}
+                  {...tooltipHandlers}
                   onSearchCc={onSearchCc}
                   onSearchUw={onSearchUw}
                   setSearchCourse={setSearchCourse}
@@ -97,9 +89,7 @@ export default function ResultsTable({ results, showActiveOnly, planner, setSear
                   hoveredToken={hoveredToken}
                   setHoveredToken={setHoveredToken}
                   showActiveOnly={showActiveOnly}
-                  handleTagEnter={handleTagEnter}
-                  handleTagMove={handleTagMove}
-                  hideTooltip={hideTooltip}
+                  {...tooltipHandlers}
                   onSearchCc={onSearchCc}
                   onSearchUw={onSearchUw}
                   setSearchCourse={setSearchCourse}

@@ -1,0 +1,79 @@
+.college-selector {
+  display: flex;
+  flex-direction: row;
+  gap: 6px;
+  width: min(100%, 420px);
+  margin: 0 auto 16px;
+}
+
+.college-selector-label {
+  color: #d1d1d1;
+  font-size: 1.1rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.college-select-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.college-select {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 36px;
+  padding: 6px 42px 6px 12px;
+
+  appearance: none;
+  border: 1px solid #cbd5e0;
+  border-radius: 8px;
+  background-color: #ffffff;
+
+  color: #1a202c;
+  font-family: inherit;
+  font-size: 0.95rem;
+  line-height: 1.4;
+
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    background-color 150ms ease;
+}
+
+.college-select:hover {
+  border-color: #718096;
+  background-color: #fafafa;
+}
+
+.college-select:focus {
+  border-color: #2563eb;
+  outline: none;
+  box-shadow: 0 0 0 3px rgb(37 99 235 / 18%);
+}
+
+.college-select-arrow {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  transform: translateY(-50%);
+
+  color: #4a5568;
+  font-size: 0.7rem;
+  pointer-events: none;
+}
+
+.college-select option {
+  color: #1a202c;
+  background-color: white;
+}
+
+.college-select option:disabled {
+  color: #718096;
+}
+
+@media (max-width: 600px) {
+  .college-selector {
+    width: 100%;
+  }
+}

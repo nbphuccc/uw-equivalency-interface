@@ -6,6 +6,8 @@ import { searchCcCourses, searchUwCourses } from "./db/queries";
 import type { Equivalency } from "./types/type";
 import Planner from "./components/Planner";
 import CollegeSelector from "./components/CollegeSelector";
+import { useAdvisoryTooltip } from "./hooks/useAdvisoryTooltip";
+import AdvisoryTooltip from "./components/AdvisoryTooltip";
 
 function App() {
   const [selectedLabel, setSelectedLabel] = useState("");
@@ -16,6 +18,8 @@ function App() {
   const [showActiveOnly, setShowActiveOnly] = useState(true);
   const [isUWSearch, setIsUwSearch] = useState(false);
   const [planner, setPlanner] = useState<Equivalency[]>([]);
+
+  const {tooltip, tooltipHandlers} = useAdvisoryTooltip();
 
   const handleSearchByCcCourse = async (
     course: string,
@@ -119,6 +123,7 @@ function App() {
           onSearchCc={handleSearchByCcCourse}
           onSearchUw={handleSearchByUwCourse}
           setPlanner={setPlanner}
+          tooltipHandlers={tooltipHandlers}
         />
       </div>
 
@@ -132,8 +137,11 @@ function App() {
           onSearchUw={handleSearchByUwCourse}
           planner={planner}
           setPlanner={setPlanner}
+          tooltipHandlers={tooltipHandlers}
          />
       </div>
+
+      <AdvisoryTooltip tooltip={tooltip} />
 
     </div>
   );

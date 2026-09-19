@@ -1,9 +1,10 @@
 import { useState, useLayoutEffect, useRef } from "react";
-import { useAdvisoryTooltip } from "../hooks/useAdvisoryTooltip";
 import type { Equivalency, HoveredToken } from "../types/type";
 import RowTextProcessing from "./RowTextProcessing";
 import { groupByCommunityCollege } from "../utils/groupBy";
+import trashCanIcon from "../assets/trash-can.svg";
 import "./ResultsTable.css";
+import PlannerExporter from "./PlannerExporter";
 
 type Props = {
   showActiveOnly: boolean;
@@ -13,6 +14,15 @@ type Props = {
   onSearchCc: (course: string, showActiveOnly: boolean, college: string) => void;
   onSearchUw: (course: string, showActiveOnly: boolean, college: string) => void;
   setPlanner: React.Dispatch<React.SetStateAction<Equivalency[]>>;
+  tooltipHandlers: {
+    handleTagEnter: (
+      college: string,
+      department: string,
+      code: string
+    ) => void;
+    handleTagMove: (x: number, y: number) => void;
+    hideTooltip: () => void;
+  };
 };
 
 export default function Planner({
@@ -23,6 +33,7 @@ export default function Planner({
   onSearchCc,
   onSearchUw,
   setPlanner,
+  tooltipHandlers,
 }: Props) {
 
     const [isExpanded, setIsExpanded] = useState(false);
@@ -52,13 +63,6 @@ export default function Planner({
 }, []);
 
   const grouped = groupByCommunityCollege(planner);
-
-  const {
-    tooltip,
-    handleTagEnter,
-    handleTagMove,
-    hideTooltip,
-  } = useAdvisoryTooltip();
 
     return (
   <div className="planner">
@@ -101,18 +105,6 @@ export default function Planner({
           </p>
         ) : (
           <>
-            {tooltip.visible && tooltip.data && (
-              <div
-                className="tooltip"
-                style={{
-                  top: tooltip.y,
-                  left: tooltip.x,
-                }}
-              >
-                {tooltip.data}
-              </div>
-            )}
-
             {Object.entries(grouped).map(([collegeName, rows]) => (
               <div key={collegeName} className="department">
                 <h3 className="department-header">
@@ -125,7 +117,7 @@ export default function Planner({
                   <span>UW Equivalent</span>
                   <span>UW Req</span>
                   <span>Effective Date</span>
-                  <span>Remove from Planner</span>
+                  <span>Remove</span>
                 </div>
 
                 {rows.map((row, index) => (
@@ -156,9 +148,7 @@ export default function Planner({
                         hoveredToken={hoveredToken}
                         setHoveredToken={setHoveredToken}
                         showActiveOnly={showActiveOnly}
-                        handleTagEnter={handleTagEnter}
-                        handleTagMove={handleTagMove}
-                        hideTooltip={hideTooltip}
+                        {...tooltipHandlers}
                         onSearchCc={onSearchCc}
                         onSearchUw={onSearchUw}
                         setSearchCourse={setSearchCourse}
@@ -174,9 +164,7 @@ export default function Planner({
                         hoveredToken={hoveredToken}
                         setHoveredToken={setHoveredToken}
                         showActiveOnly={showActiveOnly}
-                        handleTagEnter={handleTagEnter}
-                        handleTagMove={handleTagMove}
-                        hideTooltip={hideTooltip}
+                        {...tooltipHandlers}
                         onSearchCc={onSearchCc}
                         onSearchUw={onSearchUw}
                         setSearchCourse={setSearchCourse}
@@ -188,18 +176,19 @@ export default function Planner({
                     <span>{row.effective_date}</span>
 
                     <span>
-                      <input
-                        type="checkbox"
-                        checked
-                        aria-label={`Remove ${row.community_college_course} from planner`}
-                        onChange={() => {
-                          setPlanner((previous) =>
-                            previous.filter(
-                              (item) => item.rowid !== row.rowid
-                            )
-                          );
-                        }}
-                      />
+                        <button
+                            type="button"
+                            className="planner-remove-button"
+                            aria-label={`Remove ${row.community_college_course} from planner`}
+                            title="Remove from planner"
+                            onClick={() => {
+                                setPlanner((previous) =>
+                                previous.filter((item) => item.rowid !== row.rowid)
+                                );
+                            }}
+                            >
+                            <img src={trashCanIcon} alt="" />
+                        </button>
                     </span>
                   </div>
                 ))}
@@ -207,6 +196,11 @@ export default function Planner({
             ))}
           </>
         )}
+
+        <div className="export-planner-container">
+            <PlannerExporter planner={planner} />
+        </div>
+
       </div>
     </div>
   </div>
