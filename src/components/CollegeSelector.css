@@ -13,11 +13,6 @@
   white-space: nowrap;
 }
 
-.college-select-wrapper {
-  position: relative;
-  width: 100%;
-}
-
 .college-select {
   box-sizing: border-box;
   width: 100%;
@@ -70,6 +65,51 @@
 
 .college-select option:disabled {
   color: #718096;
+}
+
+.college-selector {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: fit-content;
+  margin: 0 auto 16px;
+}
+
+.college-selector-label {
+  margin-top: 8px;
+  white-space: nowrap;
+}
+
+.college-select-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.college-select-wrapper {
+  position: relative;
+  width: 420px;
+}
+
+.college-selected-logo {
+  display: block;
+  width: auto;
+  height: 48px;
+  max-width: 260px;
+  padding: 6px 14px;
+  object-fit: contain;
+  border-radius: 8px;
+  background-color: rgb(255 255 255 / 95%);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 15%);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.college-selected-logo:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 22%);
 }
 
 @media (max-width: 600px) {

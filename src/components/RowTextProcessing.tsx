@@ -44,7 +44,7 @@ function tokenize(text: string): Token[] {
       text,
       type: /^\s+$/.test(text)
         ? "space"
-        : /^[A-Z0-9.&]+$/.test(text)
+        : /^[A-Z0-9.&-]+$/.test(text)
           ? "word"
           : "other",
     }));
@@ -55,7 +55,7 @@ function isSingleLetter(text: string): boolean {
 }
 
 function isPrefix(text: string): boolean {
-  return /^[A-Z&]{2,}$/.test(text);
+  return /^[A-Z&-]{2,}$/.test(text);
 }
 
 function isSuffix(text: string): boolean {

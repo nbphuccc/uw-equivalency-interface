@@ -39,3 +39,9 @@ export type HoveredToken = {
   column: number | null;
   department: string | null;
 }
+
+export type College = {
+  name: string;
+  group: string;
+  logo: string;
+};
