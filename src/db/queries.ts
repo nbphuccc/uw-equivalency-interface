@@ -185,3 +185,38 @@ export async function getAdvisoryDetails(
 
   return null;
 }
+
+export async function searchExactCcCourses(
+  college: string,
+  ccCourse: string,
+  effectiveDate: string
+): Promise<Equivalency[]> {
+  const db = await getDB();
+
+  const sql = `
+    SELECT rowid, *
+    FROM equivalencies
+    WHERE college_name = ?
+      AND UPPER(TRIM(community_college_course)) = ?
+      AND UPPER(TRIM(effective_date)) = ?
+  `;
+
+  const params = [
+    college,
+    ccCourse.trim().toUpperCase(),
+    effectiveDate.trim().toUpperCase(),
+  ];
+
+  const stmt = db.prepare(sql);
+  stmt.bind(params);
+
+  const results: Equivalency[] = [];
+
+  while (stmt.step()) {
+    results.push(stmt.getAsObject() as Equivalency);
+  }
+
+  stmt.free();
+
+  return results;
+}

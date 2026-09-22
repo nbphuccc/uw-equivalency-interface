@@ -62,6 +62,8 @@ export default function CollegeSelector({ selected, onChange }: Props) {
           alt={`${selected} logo`}
         />
       )}
+
+      
     </div>
   </div>
 );

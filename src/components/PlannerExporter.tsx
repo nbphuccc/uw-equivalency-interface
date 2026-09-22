@@ -93,6 +93,26 @@ export default function PlannerExporter({ planner }: Props) {
     }
   );
 
+  /*
+  * Store only the visible fields needed to query and
+  * validate each course during import.
+  */
+  const metadata = {
+    courses: planner.map((row) => ({
+      college: row.college_name,
+      course: row.community_college_course,
+      effectiveDate: row.effective_date,
+    })),
+  };
+
+  /*
+    * Encoding prevents characters such as &, <, or Unicode
+    * course text from interfering with the XMP metadata XML.
+    */
+  pdf.addMetadata(
+    encodeURIComponent(JSON.stringify(metadata))
+  );
+
   pdf.save("planner.pdf");
 };
 

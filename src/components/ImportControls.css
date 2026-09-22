@@ -1,0 +1,46 @@
+.import-controls {
+  box-sizing: border-box;
+  width: 420px;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.import-controls-buttons {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+  width: 100%;
+}
+.import-controls-status,
+.import-controls-error,
+.import-controls-success {
+  margin: 6px 0 0;
+  font-size: 12px;
+}
+
+.import-controls-status {
+  color: #94a3b8;
+}
+
+.import-controls-error {
+  color: #ef4444;
+}
+
+.import-controls-success {
+  color: #22c55e;
+}
+
+.import-controls-message {
+  margin: 8px 0 0;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition:
+    opacity 500ms ease,
+    transform 500ms ease;
+}
+
+.import-controls-message.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+

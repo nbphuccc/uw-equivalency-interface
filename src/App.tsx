@@ -8,6 +8,8 @@ import Planner from "./components/Planner";
 import CollegeSelector from "./components/CollegeSelector";
 import { useAdvisoryTooltip } from "./hooks/useAdvisoryTooltip";
 import AdvisoryTooltip from "./components/AdvisoryTooltip";
+import ImportControls from "./components/ImportControls";
+import "./App.css";
 
 function App() {
   const [selectedLabel, setSelectedLabel] = useState("");
@@ -91,10 +93,18 @@ function App() {
       <h1>UW Equivalency Interface</h1>
 
       {/* School Dropdown */}
-      <CollegeSelector
-        selected={selectedLabel}
-        onChange={handleSelectCollege}
-      />
+      <div className="college-tools">
+        <CollegeSelector
+          selected={selectedLabel}
+          onChange={handleSelectCollege}
+        />
+
+        <ImportControls
+          collegeSelected={Boolean(selectedLabel)}
+          planner={planner}
+          onPlannerImported={(courses) => setPlanner(courses)}
+        />
+      </div>
 
       {/* Search Input */}
       <SearchInput

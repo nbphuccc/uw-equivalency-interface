@@ -1,0 +1,47 @@
+.import-planner-control {
+  position: relative;
+  width: 100%;
+}
+
+.import-planner-button {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid #df7c2b;
+  border-radius: 6px;
+  background-color: #df7c2b;
+  color: white;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.import-planner-button:hover {
+  border-color: #cf4b0e;
+  background-color: #cf4b0e;
+}
+
+.import-planner-button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgb(79 70 229 / 25%);
+}
+
+.import-planner-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.import-planner-error {
+  display: block;
+  margin-top: 6px;
+  color: #fca5a5;
+  font-size: 12px;
+}

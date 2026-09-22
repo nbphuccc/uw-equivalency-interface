@@ -45,3 +45,26 @@ export type College = {
   group: string;
   logo: string;
 };
+
+export type ImportedPlannerRow = {
+  college: string;
+  course: string;
+  effectiveDate: string;
+};
+
+export type PositionedText = {
+  text: string;
+  x: number;
+  y: number;
+};
+
+export type TextLine = {
+  y: number;
+  items: PositionedText[];
+};
+
+export type PlannerMetadata = {
+  format: string;
+  version: number;
+  courses: ImportedPlannerRow[];
+};

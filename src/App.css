@@ -182,3 +182,35 @@
     border-right-color: var(--border);
   }
 }
+
+.college-tools {
+  display: grid;
+  grid-template-columns: max-content 420px;
+  column-gap: 8px;
+  row-gap: 12px;
+  width: max-content;
+  margin: 0 auto 16px;
+}
+
+/* Let the selector's label and controls use the parent grid. */
+.college-tools > .college-selector {
+  display: contents;
+}
+
+.college-tools .college-selector-label {
+  grid-column: 1;
+  align-self: start;
+  white-space: nowrap;
+}
+
+.college-tools .college-selector-control {
+  grid-column: 2;
+  width: 420px;
+}
+
+/* Place the buttons under column 2—the select bar only. */
+.college-tools > .import-controls {
+  grid-column: 2;
+  width: 420px;
+  margin: 0;
+}
