@@ -32,15 +32,27 @@
 
 .import-controls-message {
   margin: 8px 0 0;
-  opacity: 0;
-  transform: translateY(-4px);
-  transition:
-    opacity 500ms ease,
-    transform 500ms ease;
+  animation: import-message-fade 5s ease forwards;
 }
 
-.import-controls-message.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
+@keyframes import-message-fade {
+  0% {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
 
+  10% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  90% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
